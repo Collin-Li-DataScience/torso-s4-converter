@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.DS_Store
+.s4_cache.json
+.s4_converter.log
+.s4_processed
