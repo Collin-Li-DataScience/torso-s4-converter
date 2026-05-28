@@ -23,7 +23,7 @@ brew install ffmpeg python@3
 pip install PyQt6   # only needed for the GUI
 ```
 
-Place the `s4_converter/` folder somewhere on your Mac (e.g. `~/scripts/`).
+Clone or download the repo somewhere on your Mac (e.g. `~/scripts/torso-s4-converter`).
 
 ---
 
@@ -33,7 +33,7 @@ Place the `s4_converter/` folder somewhere on your Mac (e.g. `~/scripts/`).
 
 ```bash
 cd ~/scripts
-python3 -m s4_converter.gui
+python3 -m s4converter.gui
 ```
 
 1. Set the drive path (e.g. `/Volumes/S-4/SAMPLES`) and click **Load**
@@ -48,19 +48,19 @@ Leave the **Incremental** checkbox on for fast scans. Uncheck it to force a full
 
 ```bash
 # Full interactive run (preserves original v6 workflow)
-python3 -m s4_converter.cli --path /Volumes/S-4/SAMPLES
+python3 -m s4converter.cli --path /Volumes/S-4/SAMPLES
 
 # Run only specific phases
-python3 -m s4_converter.cli --phases 1,3
+python3 -m s4converter.cli --phases 1,3
 
 # Phase 1 only, no prompts (for quick conversion of new drops)
-python3 -m s4_converter.cli --quick
+python3 -m s4converter.cli --quick
 
 # Preview only, change nothing
-python3 -m s4_converter.cli --dry-run
+python3 -m s4converter.cli --dry-run
 
 # Force full scan, ignore markers
-python3 -m s4_converter.cli --full-scan
+python3 -m s4converter.cli --full-scan
 ```
 
 ---
@@ -87,7 +87,7 @@ You point it at a folder, it detects shared prefixes
 You can edit the detected prefix in the GUI before applying.
 
 ### Phase 5 — Long Filename Cleanup
-Finds files with stems > 50 chars (S-4's display limit) and suggests
+Finds files with stems > 70 chars and suggests
 shorter alternatives. You can edit the suggested name in the GUI.
 
 ### Phase 6 — Stereo → Mono Detection
@@ -137,14 +137,18 @@ renamed or converted, so the next scan will re-check it.
 ## File Structure
 
 ```
-s4_converter/
-├── __init__.py     # Package marker
-├── config.py       # All settings (edit defaults here)
-├── cache.py        # ProbeCache + FolderMarkers
-├── core.py         # Scan and apply logic (UI-agnostic)
-├── cli.py          # Command-line interface
-├── gui.py          # PyQt6 graphical interface
-└── README.md       # This file
+torso-s4-converter/
+├── config.json        ← edit this to change paths and thresholds
+├── requirements.txt
+├── CHANGELOG.md
+├── README.md
+└── s4converter/
+    ├── __init__.py
+    ├── config.py      ← loads config.json, holds internal constants
+    ├── cache.py       ← ProbeCache + FolderMarkers
+    ├── core.py        ← scan and apply logic (UI-agnostic)
+    ├── cli.py         ← command-line interface
+    └── gui.py         ← PyQt6 graphical interface
 ```
 
 ---
