@@ -2,6 +2,17 @@
 
 ---
 
+## [v8.9] – 2026-08-09
+
+### Added
+- **BPM Relabel — skip files in one-shot / non-loop ancestor folders** — `scan_bpm_relabel` now checks all ancestor folder names (from the file's parent up to the drive root) against `BPM_SKIP_FOLDER_HINTS`. A folder named `"One Shots"`, `"Drum Hits"`, `"Kick"`, `"FX"`, etc. anywhere in the path suppresses BPM relabeling for all files underneath it. `"loop"` anywhere in the folder name overrides the hint, so `"Kick Loops"` and `"One Shot Loops"` still get checked. Extended hint list with `"1 shot"`, `"1-shot"`, `"1shot"`, and `"single shot"` variants.
+- **Launch — Terminal window closes automatically when the app exits** — `launch-s4converter-MacOS.command` now runs `osascript` after the GUI process ends to close the Terminal window it opened. Silently does nothing if launched from a non-Terminal context.
+
+### Fixed
+- **Eject — UI froze and timed out on slow or busy drives** — `diskutil eject` was called synchronously on the main Qt thread with a 15 s timeout, freezing the UI and failing if the OS needed longer to flush writes. Eject now runs in a background `EjectWorker` thread so the UI stays responsive, and the timeout is raised to 60 s.
+
+---
+
 ## [v8.8] – 2026-07-22
 
 ### Fixed

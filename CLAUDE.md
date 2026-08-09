@@ -14,6 +14,7 @@ A Python tool to standardize and organize audio sample libraries for the **Torso
 
 # Launch (macOS: double-click launch-s4converter-MacOS.command, or from terminal:)
 uv run python -m s4converter.gui
+# The .command file auto-closes its Terminal window via osascript when the app exits.
 
 # Run CLI (all phases, interactive)
 uv run python -m s4converter.cli --path /Volumes/S-4/SAMPLES
@@ -110,6 +111,7 @@ Tab 1 (Sync) is always enabled even before loading a drive. Tabs 2–7 require a
 
 **`scan_bpm_relabel`** (`core.py`): Finds WAV files with a bare 2–3 digit number in the stem (BPM range 60–220) not followed by `bpm`. Runs in the Name Cleanup tab (before non-ASCII and long prefix passes). Accepts `cache: Optional[ProbeCache]` to skip files marked as reviewed. False-positive filters (applied in order):
 - `is_bpm_relabel_reviewed(path)` — user-reviewed via "Not BPM" button
+- **Folder-hint skip**: walks all ancestor folder names from the file's parent up to `base_dir`; if any ancestor matches `BPM_SKIP_FOLDER_HINTS` and does not contain `"loop"`, the file is skipped. Hints include one-shot variants (`"one shot"`, `"1 shot"`, `"single shot"`, etc.), individual drum hits (`"kick"`, `"snare"`, `"hat"`, etc.), and non-rhythmic types (`"fx"`, `"sfx"`, `"field recording"`, etc.). `"loop"` in a folder name overrides the hint — `"Kick Loops"` is still checked. Results cached per folder in `_folder_hint_skip` dict.
 - `_BPM_LABELED_RE` — already has `bpm` label
 - **Size check**: `path.stat().st_size < config.BPM_RELABEL_MAX_ONESHOT_BYTES` (default 400 KB) → skip. At 48 kHz/16-bit this catches anything shorter than ~2 s stereo / ~4 s mono — well below any realistic 1-bar loop. Uses a plain `stat()` call, no ffprobe.
 - Leading-zero check: `m.group(1)[0] == '0'` → number is zero-padded (e.g. `067`) → add folder to `leading_zero_folders` and skip. Post-loop: all findings from any folder in `leading_zero_folders` are dropped, so `101`, `120`, etc. in the same folder are also dismissed.
@@ -131,7 +133,7 @@ Uses marker phase 10 (distinct from phase 6) so BPM Detection and BPM Relabel do
 
 **Bootstrap / Register Existing** (`sync.bootstrap_all`): One-time setup. Scans both source and USB per pair; builds a USB stem index (`{usb_folder: {lowercase_stems}}`); registers source files whose stem exists on USB. Files missing from USB are left unregistered → appear as NEW. Uses stem matching (not full filename) to handle format conversions (`.aiff` → `.wav`).
 
-**`MainWindow`** (`gui.py`): Owns a single `QMediaPlayer` + `QAudioOutput` pair (`_player`, `_audio_out`) for audio preview. `_playing_btn` holds the currently-active ▶/⏹ `QPushButton`; `_on_playback_state_changed` resets it to "▶" when playback stops naturally. Player is stopped in `closeEvent`.
+**`MainWindow`** (`gui.py`): Owns a single `QMediaPlayer` + `QAudioOutput` pair (`_player`, `_audio_out`) for audio preview. `_playing_btn` holds the currently-active ▶/⏹ `QPushButton`; `_on_playback_state_changed` resets it to "▶" when playback stops naturally. Player is stopped in `closeEvent`. Eject runs via `EjectWorker` (QObject on a QThread) with a 60 s timeout; `_on_eject_done(success, err)` handles the result on the main thread.
 
 **`SyncTab`** (`gui.py`): Tab 1, always enabled. Uses `main_window.sync_tracker` (a `SyncTracker` instance created at `MainWindow.__init__`). Workers: `SyncCopyWorker` (copy/move/delete), `BootstrapWorker` (register existing). Calls `main_window.set_busy(running)` so caffeinate and global tab locking work during sync operations. `⚡ Sync + Convert` chains scan → copy → `Phase1Tab.start_scan()` automatically.
 
